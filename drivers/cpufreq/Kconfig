@@ -45,13 +45,6 @@ config CPU_FREQ_STAT_DETAILS
 
 	  If in doubt, say N.
 
-# MSM kernels will only boot with performance as the default CPU governor,
-# so don't let users choose default CPU governor other than performance
-# since Android's init script will change the CPU governor after boot to
-# the desired CPU governor.
-
-if !ARCH_MSM
-
 choice
 	prompt "Default CPUFreq governor"
 	default CPU_FREQ_DEFAULT_GOV_USERSPACE if ARM_SA1100_CPUFREQ || ARM_SA1110_CPUFREQ
@@ -121,14 +114,12 @@ config CPU_FREQ_DEFAULT_GOV_INTERACTIVE
 
 config CPU_FREQ_DEFAULT_GOV_SCHED
 	bool "sched"
-	select CPU_FREQ_GOV_INTERACTIVE
+	select CPU_FREQ_GOV_SCHED
 	help
 	  Use the CPUfreq governor 'sched' as default. This scales
 	  cpu frequency using CPU utilization estimates from the
 	  scheduler.
 endchoice
-
-endif # !ARCH_MSM
 
 config CPU_FREQ_GOV_PERFORMANCE
 	tristate "'performance' governor"
@@ -186,7 +177,7 @@ config CPU_FREQ_GOV_ONDEMAND
 	  If in doubt, say N.
 
 config CPU_FREQ_GOV_INTERACTIVE
-	bool "'interactive' cpufreq policy governor"
+	tristate "'interactive' cpufreq policy governor"
 	help
 	  'interactive' - This driver adds a dynamic cpufreq policy governor
 	  designed for latency-sensitive workloads.
@@ -194,6 +185,9 @@ config CPU_FREQ_GOV_INTERACTIVE
 	  This governor attempts to reduce the latency of clock
 	  increases so that the system is more responsive to
 	  interactive workloads.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called cpufreq_interactive.
 
 	  For details, take a look at linux/Documentation/cpu-freq.
 
@@ -226,7 +220,6 @@ config CPU_FREQ_GOV_CONSERVATIVE
 config CPU_FREQ_GOV_SCHED
 	bool "'sched' cpufreq governor"
 	depends on CPU_FREQ
-	depends on SMP
 	select CPU_FREQ_GOV_COMMON
 	help
 	  'sched' - this governor scales cpu frequency from the
