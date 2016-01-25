@@ -729,9 +729,16 @@ void do_exit(long code)
 	}
 
 	exit_signals(tsk);  /* sets PF_EXITING */
+<<<<<<< HEAD
 
 	sched_exit(tsk);
 
+	if (tsk->flags & PF_SU) {
+		su_exit();
+	}
+
+=======
+>>>>>>> 573f31e... sched: Revert HMP and some MSM specific features
 	/*
 	 * tsk->flags are checked in the futex code to protect against
 	 * an exiting task cleaning up the robust pi futexes.
