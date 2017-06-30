@@ -23,6 +23,7 @@
 #include <linux/err.h>
 #include <linux/string.h>
 #include <linux/display_state.h>
+
 #include "mdss_dsi.h"
 #ifdef TARGET_HW_MDSS_HDMI
 #include "mdss_dba_utils.h"
@@ -36,7 +37,6 @@
 DEFINE_LED_TRIGGER(bl_led_trigger);
 
 bool display_on = true;
-
 bool is_display_on()
 {
 	return display_on;
@@ -1008,6 +1008,8 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 	mdss_dsi_panel_off_hdmi(ctrl, pinfo);
 
 	panel_notify(PANEL_EVENT_DISPLAY_OFF, pinfo);
+
+	display_on = false;
 
 	display_on = false;
 
