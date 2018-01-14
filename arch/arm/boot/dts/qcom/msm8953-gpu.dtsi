@@ -123,6 +123,9 @@
 		qcom,gpu-quirk-dp2clockgating-disable;
 		qcom,gpu-quirk-lmloadkill-disable;
 
+		/* Disable wake on touch */
+		qcom,disable-wake-on-touch;
+
 		/* Trace bus */
 		coresight-id = <67>;
 		coresight-name = "coresight-gfx";
