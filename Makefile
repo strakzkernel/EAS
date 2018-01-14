@@ -2,17 +2,13 @@ VERSION = 3
 PATCHLEVEL = 18
 SUBLEVEL = 91
 EXTRAVERSION =
-NAME = Diseased Newt
+NAME = Shuffling Zombie Juror
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README
 # Comments in this file are targeted only to the developer, do not
 # expect to learn how to build the kernel reading this file.
-
-# That's our default target when none is given on the command line
-PHONY := _all
-_all:
 
 # Do not use make's built-in rules and variables
 # (this increases performance and avoids hard-to-debug behaviour);
@@ -124,19 +120,19 @@ ifeq ("$(origin O)", "command line")
   KBUILD_OUTPUT := $(O)
 endif
 
+# That's our default target when none is given on the command line
+PHONY := _all
+_all:
+
 # Cancel implicit rules on top Makefile
 $(CURDIR)/Makefile Makefile: ;
-
-ifneq ($(words $(subst :, ,$(CURDIR))), 1)
-  $(error main directory cannot contain spaces nor colons)
-endif
 
 ifneq ($(KBUILD_OUTPUT),)
 # Invoke a second make in the output directory, passing relevant variables
 # check that the output directory actually exists
 saved-output := $(KBUILD_OUTPUT)
 KBUILD_OUTPUT := $(shell mkdir -p $(KBUILD_OUTPUT) && cd $(KBUILD_OUTPUT) \
-								&& pwd)
+								&& /bin/pwd)
 $(if $(KBUILD_OUTPUT),, \
      $(error failed to create output directory "$(saved-output)"))
 
@@ -145,9 +141,14 @@ PHONY += $(MAKECMDGOALS) sub-make
 $(filter-out _all sub-make $(CURDIR)/Makefile, $(MAKECMDGOALS)) _all: sub-make
 	@:
 
-sub-make:
-	$(Q)$(MAKE) -C $(KBUILD_OUTPUT) KBUILD_SRC=$(CURDIR) \
-	-f $(CURDIR)/Makefile $(filter-out _all sub-make,$(MAKECMDGOALS))
+# KBUILD_RELSRC is the relative path from output to source; this was added so
+# that the absolute path to source files wouldn't get encoded in vmlinux and
+# module binaries
+SUB_KBUILD_SRC = $(if $(KBUILD_RELSRC),$(KBUILD_RELSRC),$(CURDIR))
+
+sub-make: FORCE
+	$(Q)$(MAKE) -C $(KBUILD_OUTPUT) KBUILD_SRC=$(SUB_KBUILD_SRC) \
+	-f $(SUB_KBUILD_SRC)/Makefile $(filter-out _all sub-make,$(MAKECMDGOALS))
 
 # Leave processing to above invocation of make
 skip-makefile := 1
@@ -403,15 +404,16 @@ LINUXINCLUDE    := \
 
 KBUILD_CPPFLAGS := -D__KERNEL__
 
-KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
-		   -fno-strict-aliasing -fno-common -fshort-wchar \
+KBUILD_CFLAGS   := -Werror -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
+		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
-		   -Wno-format-security \
-		   -std=gnu89 $(call cc-option,-fno-PIE)
+		   -Wno-format-security -Wno-unused-variable\
+		   -std=gnu89 \
+		   -mcpu=cortex-a53 -mtune=cortex-a53
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
-KBUILD_AFLAGS   := -D__ASSEMBLY__ $(call cc-option,-fno-PIE)
+KBUILD_AFLAGS   := -D__ASSEMBLY__
 KBUILD_AFLAGS_MODULE  := -DMODULE
 KBUILD_CFLAGS_MODULE  := -DMODULE
 KBUILD_LDFLAGS_MODULE := -T $(srctree)/scripts/module-common.lds
@@ -615,27 +617,21 @@ all: vmlinux
 include $(srctree)/arch/$(SRCARCH)/Makefile
 
 KBUILD_CFLAGS	+= $(call cc-option,-fno-delete-null-pointer-checks,)
-KBUILD_CFLAGS	+= $(call cc-disable-warning,maybe-uninitialized,)
 KBUILD_CFLAGS	+= $(call cc-disable-warning,frame-address,)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, format-truncation)
-
-# Needed to unbreak GCC 7.x and above
-KBUILD_CFLAGS   += $(call cc-option,-fno-store-merging,)
+KBUILD_CFLAGS	+= $(call cc-disable-warning, format-overflow)
+KBUILD_CFLAGS	+= $(call cc-disable-warning, int-in-bool-context)
+KBUILD_CFLAGS	+= $(call cc-option,-fno-PIE)
+KBUILD_AFLAGS	+= $(call cc-option,-fno-PIE)
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-KBUILD_CFLAGS	+= -Os
+KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
 else
 KBUILD_CFLAGS	+= -O2
 endif
 
 # Tell gcc to never replace conditional load with a non-conditional one
 KBUILD_CFLAGS	+= $(call cc-option,--param=allow-store-data-races=0)
-
-# check for 'asm goto'
-ifeq ($(shell $(CONFIG_SHELL) $(srctree)/scripts/gcc-goto.sh $(CC) $(KBUILD_CFLAGS)), y)
-	KBUILD_CFLAGS += -DCC_HAVE_ASM_GOTO
-	KBUILD_AFLAGS += -DCC_HAVE_ASM_GOTO
-endif
 
 # Needed to unbreak GCC 7.x and above
 KBUILD_CFLAGS   += $(call cc-option,-fno-store-merging,)
@@ -799,14 +795,13 @@ KBUILD_CFLAGS   += $(call cc-option,-Werror=strict-prototypes)
 # Prohibit date/time macros, which would make the build non-deterministic
 KBUILD_CFLAGS   += $(call cc-option,-Werror=date-time)
 
-# enforce correct pointer usage
-KBUILD_CFLAGS   += $(call cc-option,-Werror=incompatible-pointer-types)
-
-# Require designated initializers for all marked structures
-KBUILD_CFLAGS   += $(call cc-option,-Werror=designated-init)
-
 # use the deterministic mode of AR if available
 KBUILD_ARFLAGS := $(call ar-option,D)
+
+# check for 'asm goto'
+ifeq ($(shell $(CONFIG_SHELL) $(srctree)/scripts/gcc-goto.sh $(CC)), y)
+	KBUILD_CFLAGS += -DCC_HAVE_ASM_GOTO
+endif
 
 include $(srctree)/scripts/Makefile.kasan
 include $(srctree)/scripts/Makefile.extrawarn
@@ -818,7 +813,7 @@ KBUILD_AFLAGS += $(KAFLAGS)
 KBUILD_CFLAGS += $(KCFLAGS)
 
 # Use --build-id when available.
-LDFLAGS_BUILD_ID := $(patsubst -Wl$(comma)%,%,\
+LDFLAGS_BUILD_ID = $(patsubst -Wl$(comma)%,%,\
 			      $(call cc-ldoption, -Wl$(comma)--build-id,))
 KBUILD_LDFLAGS_MODULE += $(LDFLAGS_BUILD_ID)
 LDFLAGS_vmlinux += $(LDFLAGS_BUILD_ID)
@@ -972,7 +967,7 @@ $(sort $(vmlinux-deps)): $(vmlinux-dirs) ;
 
 PHONY += $(vmlinux-dirs)
 $(vmlinux-dirs): prepare scripts
-	$(Q)$(MAKE) $(build)=$@ need-builtin=1
+	$(Q)$(MAKE) $(build)=$@
 
 define filechk_kernel.release
 	echo "$(KERNELVERSION)$$($(CONFIG_SHELL) $(srctree)/scripts/setlocalversion $(srctree))"
@@ -1014,7 +1009,7 @@ prepare1: prepare2 $(version_h) include/generated/utsrelease.h \
 
 archprepare: archheaders archscripts prepare1 scripts_basic
 
-prepare0: archprepare
+prepare0: archprepare FORCE
 	$(Q)$(MAKE) $(build)=.
 
 # All the preparing..
@@ -1032,7 +1027,8 @@ define filechk_utsrelease.h
 	  echo '"$(KERNELRELEASE)" exceeds $(uts_len) characters' >&2;    \
 	  exit 1;                                                         \
 	fi;                                                               \
-	(echo \#define UTS_RELEASE \"$(KERNELRELEASE)\";)
+	(echo \#define UTS_RELEASE \"$(KERNELRELEASE)\";                  \
+	echo \#define SHORT_UTS_RELEASE \"$(KERNELVERSION)$(CONFIG_LOCALVERSION)\";)
 endef
 
 define filechk_version.h
@@ -1053,12 +1049,18 @@ headerdep:
 	$(srctree)/scripts/headerdep.pl -I$(srctree)/include
 
 # ---------------------------------------------------------------------------
+
+PHONY += depend dep
+depend dep:
+	@echo '*** Warning: make $@ is unnecessary now.'
+
+# ---------------------------------------------------------------------------
 # Firmware install
 INSTALL_FW_PATH=$(INSTALL_MOD_PATH)/lib/firmware
 export INSTALL_FW_PATH
 
 PHONY += firmware_install
-firmware_install:
+firmware_install: FORCE
 	@mkdir -p $(objtree)/firmware
 	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.fwinst obj=firmware __fw_install
 
@@ -1080,7 +1082,7 @@ PHONY += archscripts
 archscripts:
 
 PHONY += __headers
-__headers: $(version_h) scripts_basic asm-generic archheaders archscripts
+__headers: $(version_h) scripts_basic asm-generic archheaders archscripts FORCE
 	$(Q)$(MAKE) $(build)=scripts build_unifdef
 
 PHONY += headers_install_all
@@ -1152,7 +1154,7 @@ _modinst_:
 	@rm -rf $(MODLIB)/kernel
 	@rm -f $(MODLIB)/source
 	@mkdir -p $(MODLIB)/kernel
-	@ln -s `cd $(srctree) && pwd` $(MODLIB)/source
+	@ln -s `cd $(srctree) && /bin/pwd` $(MODLIB)/source
 	@if [ ! $(objtree) -ef  $(MODLIB)/build ]; then \
 		rm -f $(MODLIB)/build ; \
 		ln -s $(CURDIR) $(MODLIB)/build ; \
@@ -1245,8 +1247,8 @@ PHONY += distclean
 distclean: mrproper
 	@find $(srctree) $(RCS_FIND_IGNORE) \
 		\( -name '*.orig' -o -name '*.rej' -o -name '*~' \
-		-o -name '*.bak' -o -name '#*#' -o -name '*%' \
-		-o -name 'core' \) \
+		-o -name '*.bak' -o -name '#*#' -o -name '.*.orig' \
+		-o -name '.*.rej' -o -name '*%'  -o -name 'core' \) \
 		-type f -print | xargs rm -f
 
 
@@ -1458,7 +1460,7 @@ clean: $(clean-dirs)
 	$(call cmd,rmfiles)
 	@find $(if $(KBUILD_EXTMOD), $(KBUILD_EXTMOD), .) $(RCS_FIND_IGNORE) \
 		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
-		-o -name '*.ko.*' -o -name '*.dtb' -o -name '*.dtb.S' \
+		-o -name '*.ko.*' \
 		-o -name '*.dwo'  \
 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
 		-o -name '*.symtypes' -o -name 'modules.order' \
@@ -1605,7 +1607,8 @@ cmd_crmodverdir = $(Q)mkdir -p $(MODVERDIR) \
 
 # read all saved command lines
 
-cmd_files := $(wildcard .*.cmd $(foreach f,$(sort $(targets)),$(dir $(f)).$(notdir $(f)).cmd))
+targets := $(wildcard $(sort $(targets)))
+cmd_files := $(wildcard .*.cmd $(foreach f,$(targets),$(dir $(f)).$(notdir $(f)).cmd))
 
 ifneq ($(cmd_files),)
   $(cmd_files): ;	# Do not try to update included dependency files
