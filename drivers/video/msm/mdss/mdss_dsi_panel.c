@@ -1007,12 +1007,6 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 
 	mdss_dsi_panel_off_hdmi(ctrl, pinfo);
 
-	panel_notify(PANEL_EVENT_DISPLAY_OFF, pinfo);
-
-	display_on = false;
-
-	display_on = false;
-
 end:
 	/* clear idle state */
 	ctrl->idle = false;
