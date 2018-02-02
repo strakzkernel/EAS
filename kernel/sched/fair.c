@@ -5704,7 +5704,6 @@ static inline int eas_deadzone_filter(struct energy_env *eenv)
 	 * efficient, with a 0 energy variation.
 	 */
 	eenv->next_idx = EAS_CPU_PRV;
-	eenv->cpu[EAS_CPU_PRV].nrg_delta = 0;
 
 	/*
 	 * Compare the other CPU candidates to find a CPU which can be
