@@ -1,20 +1,25 @@
 #!/bin/bash
-kernel_dir=$PWD
-export V="v1.5"
+source "env.sh";
+
+kernel_dir=${HOME}/EAS
+export V="EAS-1.5"
 export CONFIG_FILE="mido_defconfig"
 export ARCH=arm64
 export SUBARCH=arm64
-export KBUILD_BUILD_USER=vicatz
-export KBUILD_BUILD_HOST=Dalang
-export TOOL_CHAIN_PATH="/home/vicatz/toolchains/ubertc_gcc/aarch64-linux-android-8.0/bin/aarch64-linux-android-"
-export CLANG_TCHAIN="/home/vicatz/toolchains/Clang-DragonTC/bin/clang"
+export KBUILD_BUILD_USER=ReVaNtH
+export KBUILD_BUILD_HOST=StRaKz
+export TOOL_CHAIN_PATH="/home/travis/UBER/bin/aarch64-linux-android-"
+export CLANG_TCHAIN="/home/travis/clang/clang-4679922/bin/clang"
+export IMAGE2="${OUTDIR}/arch/${ARCH}/boot/Image.gz";
 export CLANG_VERSION="$(${CLANG_TCHAIN} --version | head -n 1 | cut -d'(' -f1,4)"
 export LD_LIBRARY_PATH="${TOOL_CHAIN_PATH}/../lib"
 export PATH=$PATH:${TOOL_CHAIN_PATH}
 export builddir="${kernel_dir}/mateng"
 #export modules_dir="zip/system/lib/modules"
 export ZIPPER_DIR="${kernel_dir}/zip"
-export ZIP_NAME="wayang™${V}_Oreo-Los_Aosp.zip"
+export ZIP_NAME="StRaKz-KeRnEl™${V}_Oreo.zip"
+export ZIPNAME="StRaKz-KeRnEl™${V}_Oreo.zip"
+export FINAL_ZIP=${HOME}/EAS/zip/${ZIPNAME}
 export IMAGE="arch/arm64/boot/Image.gz-dtb";
 JOBS="-j8"
 cd $kernel_dir
@@ -54,5 +59,18 @@ zipit () {
 
 make_a_fucking_defconfig
 compile
+cp -v "${IMAGE2}" "${HOME}/EAS/zip/";
+cd ${HOME}/EAS/zip/;
+zip -r9 ${FINAL_ZIP} *;
+cd -;
+
+if [ -f "$FINAL_ZIP" ];
+then
+echo -e "$ZIPNAME zip can be found at $FINAL_ZIP";
+echo -e "Uploading ${ZIPNAME} to https://transfer.sh/";
+transfer "${FINAL_ZIP}";
+else
+echo -e "Zip Creation Failed =(";
+fi # FINAL_ZIP check
 zipit
 cd ${kernel_dir}
