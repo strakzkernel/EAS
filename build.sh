@@ -1,6 +1,28 @@
 #!/bin/bash
 source "env.sh";
 
+sudo apt-get update -y
+sudo add-apt-repository --yes ppa:webupd8team/java
+sudo apt-get install oracle-java9-installer
+sudo apt install oracle-java9-set-default
+sudo apt-get install libncurses5-dev
+sudo apt-get install git-core gnupg flex bison gperf
+sudo apt-get install build-essential
+sudo apt-get install zip
+sudo apt-get install curl 
+sudo apt-get install libc6-dev
+sudo apt-get install libncurses5-dev:i386 
+sudo apt-get install x11proto-core-dev libx11-dev:i386 libreadline6-dev:i386
+sudo apt-get install libgl1-mesa-glx:i386 libgl1-mesa-dev 
+sudo apt-get install g++-multilib tofrodos python-markdown
+sudo apt-get install libxml2-utils xsltproc zlib1g-dev:i386
+sudo  ln -s /usr/lib/i386-linux-gnu/mesa/libGL.so.1 /usr/lib/i386-linux-gnu/libGL.so
+sudo apt-get install -y ccache &&echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc &&source ~/.bashrc && echo $PATH
+export USE_CCACHE=1
+export ARCH=arm64
+export KD=$HOME/EAS
+cd $HOME/EAS
+
 kernel_dir=${HOME}/EAS
 export V="EAS-1.5"
 export CONFIG_FILE="mido_defconfig"
