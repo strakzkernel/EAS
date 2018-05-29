@@ -1,4 +1,7 @@
 language: c
+compiler: 
+  - gcc
+
 cache:
   bundler: true
   ccache: true
@@ -36,7 +39,7 @@ before_script:
   - git clone --depth=50 --branch=stable https://github.com/strakzkernel/EAS $HOME/EAS
   
 # Download the clang Source
-  - git clone --depth=50 --branch=oreo-mr1 https://github.com/strakzkernel/platform_prebuilts_clang_host_linux-x86 clang
+  - git clone --depth=50 --branch=oreo-mr1 https://github.com/strakzkernel/gclang clang
 # Download AnyKernel2
 script:
   - export ARCH=arm64
