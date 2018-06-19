@@ -5,17 +5,17 @@ sudo apt-get update -y
 sudo add-apt-repository --yes ppa:webupd8team/java
 sudo apt-get install oracle-java9-installer
 sudo apt install oracle-java9-set-default
-sudo apt-get install libncurses5-dev
-sudo apt-get install git-core gnupg flex bison gperf
-sudo apt-get install build-essential
-sudo apt-get install zip
-sudo apt-get install curl 
-sudo apt-get install libc6-dev
-sudo apt-get install libncurses5-dev:i386 
-sudo apt-get install x11proto-core-dev libx11-dev:i386 libreadline6-dev:i386
-sudo apt-get install libgl1-mesa-glx:i386 libgl1-mesa-dev 
-sudo apt-get install g++-multilib tofrodos python-markdown
-sudo apt-get install libxml2-utils xsltproc zlib1g-dev:i386
+sudo apt-get install -y libncurses5-dev
+sudo apt-get install -y git-core gnupg flex bison gperf
+sudo apt-get install -y build-essential
+sudo apt-get install -y zip
+sudo apt-get install -y curl 
+sudo apt-get install -y libc6-dev
+sudo apt-get install -y libncurses5-dev:i386 
+sudo apt-get install -y x11proto-core-dev libx11-dev:i386 libreadline6-dev:i386
+sudo apt-get install -y libgl1-mesa-glx:i386 libgl1-mesa-dev 
+sudo apt-get install -y g++-multilib tofrodos python-markdown
+sudo apt-get install -y libxml2-utils xsltproc zlib1g-dev:i386
 sudo  ln -s /usr/lib/i386-linux-gnu/mesa/libGL.so.1 /usr/lib/i386-linux-gnu/libGL.so
 sudo apt-get install -y ccache &&echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc &&source ~/.bashrc && echo $PATH
 export USE_CCACHE=1
@@ -23,27 +23,27 @@ export ARCH=arm64
 export KD=$HOME/EAS
 cd $HOME/EAS
 
-kernel_dir=${HOME}/EAS
-export V="EAS-1.5"
-export CONFIG_FILE="mido_defconfig"
+kernel_dir=${HOME}/SK
+export V="-😂🐼-v7-EAS"
+export CONFIG_FILE="strakz_defconfig"
 export ARCH=arm64
 export SUBARCH=arm64
 export KBUILD_BUILD_USER=ReVaNtH
 export KBUILD_BUILD_HOST=StRaKz
-export TOOL_CHAIN_PATH="${HOME}/UBER/bin/aarch64-linux-android-"
-export CLANG_TCHAIN="${HOME}/clang/r3/bin/clang"
+export TOOL_CHAIN_PATH="${HOME}/gcc8opt/bin/aarch64-opt-linux-android-"
+export CLANG_TCHAIN="${HOME}/clang/bin/clang"
 export IMAGE2="${OUTDIR}/arch/${ARCH}/boot/Image.gz";
 export CLANG_VERSION="$(${CLANG_TCHAIN} --version | head -n 1 | cut -d'(' -f1,4)"
 export LD_LIBRARY_PATH="${TOOL_CHAIN_PATH}/../lib"
 export PATH=$PATH:${TOOL_CHAIN_PATH}
-export builddir="${kernel_dir}/mateng"
+export builddir="${kernel_dir}/SK/anykernel"
 #export modules_dir="zip/system/lib/modules"
 export ZIPPER_DIR="${kernel_dir}/zip"
 export ZIP_NAME="StRaKz-KeRnEl™${V}_Oreo.zip"
 export ZIPNAME="StRaKz-KeRnEl™${V}_Oreo.zip"
-export FINAL_ZIP=${HOME}/EAS/zip/${ZIPNAME}
+export FINAL_ZIP=${HOME}/SK/SK/anykernel/${ZIPNAME}
 export IMAGE="arch/arm64/boot/Image.gz-dtb";
-JOBS="-j8"
+JOBS="-j4"
 cd $kernel_dir
 make clean && make mrproper
 
@@ -75,14 +75,14 @@ zipit () {
 
     cd ${ZIPPER_DIR}/
     zip -r9 ${ZIP_NAME} * -x README ${ZIP_NAME}
-    rm -rf ${kernel_dir}/mateng/${ZIP_NAME}
-    mv ${ZIPPER_DIR}/${ZIP_NAME} ${kernel_dir}/mateng/${ZIP_NAME}
+    rm -rf ${kernel_dir}/SK/anykernel/${ZIP_NAME}
+    mv ${ZIPPER_DIR}/${ZIP_NAME} ${kernel_dir}/SK/anykernel/${ZIP_NAME}
 }
 
 make_a_fucking_defconfig
 compile
-cp -v "${IMAGE2}" "${HOME}/EAS/zip/";
-cd ${HOME}/EAS/zip/;
+cp -v "${IMAGE2}" "${HOME}/SK/anykernel/";
+cd ${HOME}/SK/anykernel/;
 zip -r9 ${FINAL_ZIP} *;
 cd -;
 
